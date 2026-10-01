@@ -1,8 +1,12 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import Present from './components/Present.vue'
+import { isMobile } from './config'
 
 const videoSrc = '/skystar.mp4'
+
+// 移动端打字机样式走 .printer-div.mobile（见 style.css）
+const mobile = isMobile()
 
 const showPresent = ref(false)
 const showTime = ref(false)
@@ -58,7 +62,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="!showPresent" class="printer-div">
+  <div v-if="!showPresent" class="printer-div" :class="{ mobile }">
     嘿，{{ userName ? userName + '，' : '' }}点击这个按钮，开启你的礼物^_^
     &nbsp;
     <button @click="onClickButton">这个按钮</button>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { words, wordsToPhone } from '../data'
+import { presentConfig, titleConfig, isMobile } from '../config'
 
 defineProps({
   videoSrc: {
@@ -10,21 +11,82 @@ defineProps({
 })
 
 const videoRef = ref(null)
-const finalShown = ref(false)
-let finalTimer = null
 
-/** 对应原项目 current-device 的 device.desktop() */
-const isDesktop = () =>
-  !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+// 移动端与桌面端使用各自的词库和参数配置
+const mobile = isMobile()
+const cfg = mobile ? presentConfig.mobile : presentConfig.desktop
+
+// ===== 标题打字机序列（文案见 config.js 的 titleConfig） =====
+const currentItem = ref(null) // 当前文案项
+const typedTop = ref('') // 顶行已输入部分
+const typedBottom = ref('') // 底行已输入部分
+const activeLine = ref('top') // 光标所在行：top / bottom
+const titlePlaying = ref(true) // 序列播放中，结束后隐藏光标
+let titleTimer = null
+
+const typeText = (text, onUpdate, onDone) => {
+  if (!text) {
+    onDone()
+    return
+  }
+  let i = 0
+  const tick = () => {
+    i++
+    onUpdate(text.slice(0, i))
+    if (i < text.length) {
+      titleTimer = setTimeout(tick, titleConfig.typeSpeed)
+    } else {
+      onDone()
+    }
+  }
+  titleTimer = setTimeout(tick, titleConfig.typeSpeed)
+}
+
+/**
+ * 播放第 index 项：顶行打字 → 底行打字 → 停留（该项 holdTime，未配置用公用值）→ 下一项
+ * 最后一项播放完即停止，文字保留在屏幕上
+ */
+const playTitle = (index) => {
+  const item = titleConfig.sequence[index]
+  if (!item) {
+    titlePlaying.value = false
+    return
+  }
+  currentItem.value = item
+  typedTop.value = ''
+  typedBottom.value = ''
+  activeLine.value = 'top'
+  typeText(
+    item.top,
+    (v) => (typedTop.value = v),
+    () => {
+      activeLine.value = 'bottom'
+      typeText(
+        item.bottom,
+        (v) => (typedBottom.value = v),
+        () => {
+          titleTimer = setTimeout(() => playTitle(index + 1), item.holdTime ?? titleConfig.holdTime)
+        }
+      )
+    }
+  )
+}
 
 const randomNum = (min, max) => (Math.random() * (max - min + 1) + min).toFixed(2)
 
-// 桌面端与移动端使用不同的词库（同原项目）
-const wordList = (isDesktop() ? words : wordsToPhone).map((w) => ({
+/** 按配置数量随机挑取诗句（0 或超过词库长度时全部显示） */
+const pickWords = (list, count) => {
+  if (!count || count >= list.length) return list
+  return [...list].sort(() => Math.random() - 0.5).slice(0, count)
+}
+
+const wordList = pickWords(mobile ? wordsToPhone : words, cfg.wordCount).map((w) => ({
   text: w,
-  marginTop: randomNum(-40, 20) + 'vh',
-  marginLeft: randomNum(6, 35) + 'vw',
-  duration: randomNum(8, 20) + 's',
+  // 分布位置与密集程度
+  marginTop: randomNum(...cfg.density.marginTop) + 'vh',
+  marginLeft: randomNum(...cfg.density.marginLeft) + 'vw',
+  // 旋转一圈耗时（越小转得越快）
+  duration: randomNum(...cfg.rotateDuration) + 's',
   delay: randomNum(-20, 0) + 's'
 }))
 
@@ -39,14 +101,11 @@ onMounted(() => {
     })
   }
 
-  // 10 秒后切换文案（同原项目）
-  finalTimer = setTimeout(() => {
-    finalShown.value = true
-  }, 10000)
+  playTitle(0)
 })
 
 onBeforeUnmount(() => {
-  clearTimeout(finalTimer)
+  clearTimeout(titleTimer)
 })
 </script>
 
@@ -57,14 +116,20 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="textone">
-      <h1 v-if="!finalShown">look at the stars</h1>
-      <h1 v-else class="final-text">今晚，整片星空将为你一人闪烁</h1>
+      <h1
+        v-if="currentItem"
+        :class="currentItem.topClass"
+        :style="{ fontSize: cfg.titleFontSize }"
+      >{{ typedTop }}<span v-if="titlePlaying && activeLine === 'top'" class="type-cursor"></span></h1>
     </div>
     <div class="text">
-      <h1 v-if="!finalShown">look how they shine for u</h1>
+      <h1
+        v-if="currentItem && currentItem.bottom && (typedBottom || activeLine === 'bottom')"
+        :style="{ fontSize: cfg.titleFontSize }"
+      >{{ typedBottom }}<span v-if="titlePlaying && activeLine === 'bottom'" class="type-cursor"></span></h1>
     </div>
 
-    <div class="container textContainer">
+    <div class="container textContainer" :style="{ fontSize: cfg.wordFontSize }">
       <div
         v-for="(w, i) in wordList"
         :key="i"

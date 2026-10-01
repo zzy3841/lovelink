@@ -70,6 +70,23 @@ h1 {
   font-family: '华文楷体', '楷体', serif;
 }
 
+/* 标题打字机光标：宽度/高度用 em，随标题字号（含移动端 vw）等比缩放 */
+.type-cursor {
+  display: inline-block;
+  width: 0.08em;
+  height: 1em;
+  margin-left: 0.05em;
+  background: currentColor;
+  vertical-align: -0.12em;
+  animation: cursor-blink 0.5s steps(1) infinite;
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 /* 3D 旋转诗句 */
 .textContainer {
   position: absolute;
@@ -94,7 +111,7 @@ h1 {
   margin-left: var(--margin-left);
   color: #baabda;
   font-family: '楷体';
-  font-size: 20px;
+  /* 字号由配置注入（见 config.js），移动端为 vw 单位 */
 }
 
 @keyframes rotY {
@@ -124,8 +141,38 @@ h1 {
   }
 
   100% {
-    width: 700px;
+    /* 窄屏下不超过屏幕宽度，避免按钮被裁切 */
+    width: min(700px, 92vw);
   }
+}
+
+/*
+ * 移动端（.printer-div.mobile，由 config.js 的 isMobile() 绑定）：
+ * 字号 4vw，高度同样改用 vw 并按两行预留（4vw × 1.5 行高 × 2 行 = 12vw）。
+ * 高度与字号同随屏幕宽度等比缩放，解决固定 30px 高度把换行内容裁掉一半的问题。
+ */
+.printer-div.mobile {
+  font-size: 4vw;
+  line-height: 2;
+  height: 8vw;
+  /* 宽度目标不受桌面 700px 上限约束：直接展开到 92vw，
+     全 vw 体系下内容宽度 ≈ (21.5 + 名字字数) × 4vw，最多两行，12vw 高度必然够用 */
+  animation: write-mobile 4s steps(14) forwards, blink 0.5s steps(1) infinite;
+}
+
+@keyframes write-mobile {
+  0% {
+    width: 0;
+  }
+
+  100% {
+    width: 92vw;
+  }
+}
+
+.printer-div.mobile button {
+  /* 按钮文字跟随 4vw 缩放，避免默认字号撑高行盒导致底部被裁 */
+  font-size: inherit;
 }
 
 @keyframes blink {
