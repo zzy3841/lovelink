@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { words, wordsToPhone } from '../data'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { words } from '../data'
 import { presentConfig, titleConfig, isMobile } from '../config'
 
 defineProps({
@@ -80,7 +80,7 @@ const pickWords = (list, count) => {
   return [...list].sort(() => Math.random() - 0.5).slice(0, count)
 }
 
-const wordList = pickWords(mobile ? wordsToPhone : words, cfg.wordCount).map((w) => ({
+const wordList = pickWords(words, cfg.wordCount).map((w) => ({
   text: w,
   // 分布位置与密集程度
   marginTop: randomNum(...cfg.density.marginTop) + 'vh',
@@ -89,6 +89,11 @@ const wordList = pickWords(mobile ? wordsToPhone : words, cfg.wordCount).map((w)
   duration: randomNum(...cfg.rotateDuration) + 's',
   delay: randomNum(-20, 0) + 's'
 }))
+
+// 诗句逐个出现：按 appearInterval 间隔依次渲染，0 表示全部立即出现
+const shownCount = ref(cfg.appearInterval > 0 ? 0 : wordList.length)
+const visibleWords = computed(() => wordList.slice(0, shownCount.value))
+let appearTimer = null
 
 onMounted(() => {
   const video = videoRef.value
@@ -102,10 +107,19 @@ onMounted(() => {
   }
 
   playTitle(0)
+
+  // 诗句按配置频率逐个出现
+  if (cfg.appearInterval > 0 && wordList.length) {
+    appearTimer = setInterval(() => {
+      shownCount.value++
+      if (shownCount.value >= wordList.length) clearInterval(appearTimer)
+    }, cfg.appearInterval)
+  }
 })
 
 onBeforeUnmount(() => {
   clearTimeout(titleTimer)
+  clearInterval(appearTimer)
 })
 </script>
 
@@ -131,7 +145,7 @@ onBeforeUnmount(() => {
 
     <div class="container textContainer" :style="{ fontSize: cfg.wordFontSize }">
       <div
-        v-for="(w, i) in wordList"
+        v-for="(w, i) in visibleWords"
         :key="i"
         class="word-box"
         :style="{

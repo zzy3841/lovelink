@@ -8,6 +8,7 @@
  *                     marginLeft 水平分布 [min, max]（vw）
  * - wordFontSize    诗句字号（移动端用 vw 单位，随屏幕宽度缩放）
  * - titleFontSize   标题字号（移动端用 vw 单位）
+ * - appearInterval  诗句逐个出现的间隔（ms），0 表示全部立即出现
  *
  * 预览另一端效果可在 url 上加强制参数：?device=mobile 或 ?device=desktop
  */
@@ -36,7 +37,8 @@ export const presentConfig = {
       marginLeft: [6, 35]
     },
     wordFontSize: '20px',
-    titleFontSize: '36px'
+    titleFontSize: '36px',
+    appearInterval: 200 // 诗句逐个出现的间隔（ms），0 = 全部立即出现
   },
   mobile: {
     wordCount: 0,
@@ -46,7 +48,8 @@ export const presentConfig = {
       marginLeft: [0, 40]
     },
     wordFontSize: '4vw',
-    titleFontSize: '7vw'
+    titleFontSize: '7vw',
+    appearInterval: 700
   }
 }
 

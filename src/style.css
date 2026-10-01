@@ -98,9 +98,10 @@ h1 {
 .word-box,
 .word-box .word {
   position: absolute;
-  animation: rotY 0s linear infinite;
-  animation-duration: var(--animation-duration);
-  animation-delay: var(--animation-delay);
+  /* rotY：持续旋转；word-appear：入场淡入（只动 opacity，避免与 rotY 的 transform 冲突） */
+  animation: rotY 0s linear infinite, word-appear 0.8s ease-out both;
+  animation-duration: var(--animation-duration), 0.8s;
+  animation-delay: var(--animation-delay), 0s;
 }
 
 .word-box {
@@ -117,6 +118,12 @@ h1 {
 @keyframes rotY {
   to {
     transform: rotateY(360deg);
+  }
+}
+
+@keyframes word-appear {
+  from {
+    opacity: 0;
   }
 }
 
