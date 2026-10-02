@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:git": "vite build --base /lovelink",
-    "preview": "vite preview"
+    "build:git": "vite build --base /lovelink --outDir build",
+    "preview": "vite preview",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
+    "gh-pages": "^6.3.0",
     "vue": "^3.5.13"
   },
   "devDependencies": {
