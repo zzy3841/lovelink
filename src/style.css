@@ -11,6 +11,7 @@ body {
   position: relative;
   overflow: hidden;
   perspective: 1300px;
+  background: #3f2b44;
 }
 
 div {
@@ -56,6 +57,11 @@ h1 {
   left: 50%;
   top: 50%;
   transform: translateX(-50%);
+}
+
+.defaultText {
+  color: #e8f9fd;
+  font-family: '华文楷体', '楷体', serif;
 }
 
 .textone {
@@ -127,70 +133,356 @@ h1 {
   }
 }
 
-/* 打字机效果 */
-.printer-div {
-  font-size: 20px;
-  /* 初始宽度为0 */
-  width: 0;
-  height: 30px;
-  border-right: 1px solid darkgray;
-  /*
-    Steps(<number_of_steps>，<direction>)
-    steps接收两个参数：第一个参数指定动画分割的段数；第二个参数可选，接受 start和 end两个值，指定在每个间隔的起点或是终点发生阶跃变化，默认为 end。
-    */
-  animation: write 4s steps(14) forwards, blink 0.5s steps(1) infinite;
-  overflow: hidden;
-}
-
-@keyframes write {
-  0% {
-    width: 0;
-  }
-
-  100% {
-    /* 窄屏下不超过屏幕宽度，避免按钮被裁切 */
-    width: min(700px, 92vw);
-  }
-}
-
-/*
- * 移动端（.printer-div.mobile，由 config.js 的 isMobile() 绑定）：
- * 字号 4vw，高度同样改用 vw 并按两行预留（4vw × 1.5 行高 × 2 行 = 12vw）。
- * 高度与字号同随屏幕宽度等比缩放，解决固定 30px 高度把换行内容裁掉一半的问题。
- */
-.printer-div.mobile {
-  font-size: 4vw;
-  line-height: 2;
-  height: 8vw;
-  /* 宽度目标不受桌面 700px 上限约束：直接展开到 92vw，
-     全 vw 体系下内容宽度 ≈ (21.5 + 名字字数) × 4vw，最多两行，12vw 高度必然够用 */
-  animation: write-mobile 4s steps(14) forwards, blink 0.5s steps(1) infinite;
-}
-
-@keyframes write-mobile {
-  0% {
-    width: 0;
-  }
-
-  100% {
-    width: 92vw;
-  }
-}
-
-.printer-div.mobile button {
-  /* 按钮文字跟随 4vw 缩放，避免默认字号撑高行盒导致底部被裁 */
-  font-size: inherit;
-}
-
-@keyframes blink {
-  50% {
-    /* transparent是全透明黑色(black)的速记法，即一个类似rgba(0,0,0,0)这样的值。 */
-    border-color: transparent;
-  }
-}
-
-.time-div {
+/* ===== 开场场景（见 Intro.vue）：#3f2b44 背景 + 信封 + 信纸 + 爱心 ===== */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  background: #3f2b44;
+  /* 转场时延迟变透明：等爱心放大盖满屏幕后，背景透出底层星空 */
+  transition: background-color 0.45s ease 0.5s;
+}
+
+.intro.transition {
+  background: transparent;
+}
+
+/* 转场时信纸与提示淡出（爱心此时已盖住它们） */
+.intro.transition .letter-card,
+.intro.transition .heart-hint {
+  opacity: 0;
+  transition: opacity 0.4s ease 0.45s;
+}
+
+.envelope-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+/* 拆信动画（翻盖 0.85s、信纸 1.35s）结束后整体淡出 */
+.envelope-wrap.away {
+  animation: fade-away 0.5s ease 1.45s forwards;
+}
+
+.envelope {
+  --env-w: clamp(230px, 62vw, 300px);
+  position: relative;
+  width: var(--env-w);
+  height: calc(var(--env-w) * 0.64);
+  perspective: 900px;
+  transform-style: flat;
+  cursor: pointer;
+  animation: floaty 3.2s ease-in-out infinite;
+}
+
+.envelope-back,
+.envelope-letter,
+.envelope-front,
+.envelope-flap {
+  position: absolute;
+}
+
+/* 信封底 */
+.envelope-back {
+  inset: 0;
+  z-index: 1;
+  background: #f9b9bc;
+  border-radius: 8px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* 信纸（藏在信封里，拆开后升起） */
+.envelope-letter {
+  left: 6%;
+  bottom: 5%;
+  z-index: 2;
+  width: 88%;
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fdf4f0;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(63, 43, 68, 0.18);
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) 0.55s;
+}
+
+/* 信纸上的装饰文字行 */
+.letter-line {
+  border-radius: 2px;
+  background: #eccfd3;
+}
+
+.letter-line:nth-child(1) {
+  width: 62%;
+  height: 4px;
+}
+
+.letter-line:nth-child(2) {
+  width: 46%;
+  height: 4px;
+  margin-top: 9px;
+}
+
+.letter-line:nth-child(3) {
+  width: 32%;
+  height: 4px;
+  margin-top: 9px;
+}
+
+/* 信封正面：上边缘向内折出 V 形 */
+.envelope-front {
+  inset: 0;
+  z-index: 3;
+  background: #f2a3a8;
+  border-radius: 8px;
+  clip-path: polygon(0 0, 50% 46%, 100% 0, 100% 100%, 0 100%);
+}
+
+/* 信封盖（三角形），拆开时向上翻起 */
+.envelope-flap {
+  left: 0;
+  top: 1.8%;
+  z-index: 4;
   width: 100%;
+  height: 52%;
+  background: #f9b9bc;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top center;
+  transition: transform 0.75s ease-in-out 0.1s, z-index 0s 0.45s;
+}
+
+/* 拆开：盖子翻起（沉到信纸后面）→ 信纸升起 */
+.envelope.open .envelope-flap {
+  z-index: 1;
+  transform: rotateX(180deg);
+}
+
+.envelope.open .envelope-letter {
+  transform: translateY(-70%);
+}
+
+.envelope-hint {
+  margin: 0;
+  color: rgba(249, 185, 188, 0.9);
+  font-size: clamp(13px, 3.6vw, 16px);
+  letter-spacing: 3px;
+  animation: hint-pulse 2.4s ease-in-out infinite;
+}
+
+/* ===== 信纸卡片（拆信后展开，内容从上往下依次打出） ===== */
+.letter-card {
+  width: min(80vw, 340px);
+  min-height: min(clamp(220px, 52vw, 280px), 40vh); /* 矮视口下压缩，给爱心留空间 */
+  padding: clamp(22px, 6vw, 30px) clamp(20px, 6vw, 28px);
+  display: flex;
+  flex-direction: column;
+  background: #fdf4f0;
+  border-radius: 10px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+  animation: card-in 0.5s ease;
+}
+
+.letter-text {
+  margin: 0;
+  min-height: 1.7em; /* 打字前行高占位，卡片高度稳定 */
+  color: #6b4a5e;
+  font-family: '楷体', 'KaiTi', serif;
+  font-size: clamp(17px, 4.8vw, 22px);
+  line-height: 1.7;
+}
+
+.letter-text.align-left {
+  text-align: left;
+}
+
+.letter-text.align-center {
+  text-align: center;
+}
+
+.letter-text.align-right {
+  text-align: right;
+}
+
+/* 行与行之间留白 */
+.letter-text + .letter-text {
+  margin-top: clamp(14px, 4vw, 20px);
+}
+
+/* 最后一行（落款）推到卡片底部 */
+.letter-text:last-child {
+  margin-top: auto;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes fade-away {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes hint-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===== 爱心按钮与转场 ===== */
+/* 提示 + 爱心纵向排在信纸下方（占位隐藏，出现时不挤动信纸） */
+.heart-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: clamp(16px, 4vh, 28px);
+  visibility: hidden;
+  opacity: 0;
+}
+
+.heart-box.show {
+  visibility: visible;
+  opacity: 1;
+  animation: heart-in 0.7s ease;
+}
+
+/* 爱心按钮上方的提示 */
+.heart-hint {
+  white-space: nowrap;
+  margin: 0;
+  color: rgba(249, 185, 188, 0.95);
+  font-size: clamp(13px, 3.8vw, 16px);
+  letter-spacing: 2px;
+}
+
+.heart-btn {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.65, 0.05, 0.35, 1);
+}
+
+/* 倒计时期间轻微放大，给数字留空间 */
+.heart-box.counting .heart-btn {
+  transform: scale(1.12);
+}
+
+/* 转场第一步：放大到盖满屏幕 */
+.heart-box.grow .heart-btn {
+  transform: scale(38);
+  transition: transform 1.05s cubic-bezier(0.65, 0.05, 0.35, 1);
+}
+
+/* 转场第二步：飞出屏幕外并渐渐隐藏 */
+.heart-box.fly .heart-btn {
+  transform: translate(80vw, -110vh) scale(46);
+  opacity: 0;
+  transition: transform 0.9s ease-in, opacity 0.75s ease 0.15s;
+}
+
+/* 经典 CSS 心形：两个圆角矩形旋转拼合，尺寸随 --heart-w 等比缩放（移动端自适应） */
+.heart-shape {
+  --heart-w: clamp(88px, 24vw, min(120px, 20vh)); /* 矮视口下同步缩小 */
+  position: relative;
+  display: block;
+  width: var(--heart-w);
+  height: calc(var(--heart-w) * 0.9);
+  animation: heartbeat 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.28));
+}
+
+.heart-shape::before,
+.heart-shape::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: calc(var(--heart-w) / 2);
+  height: calc(var(--heart-w) * 0.75);
+  background: #f9b9bc;
+  border-radius: calc(var(--heart-w) / 2) calc(var(--heart-w) / 2) 0 0;
+}
+
+.heart-shape::before {
+  left: calc(var(--heart-w) / 2);
+  transform: rotate(-45deg);
+  transform-origin: 0 100%;
+}
+
+.heart-shape::after {
+  left: 0;
+  transform: rotate(45deg);
+  transform-origin: 100% 100%;
+}
+
+/* 倒计时数字：显示在爱心中间 */
+.heart-count {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  color: #3f2b44;
+  font-size: calc(var(--heart-w) * 0.3);
+  font-weight: 700;
+}
+
+@keyframes heart-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  14% {
+    transform: scale(1.08);
+  }
+
+  28% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scale(1.05);
+  }
+
+  56% {
+    transform: scale(1);
+  }
 }

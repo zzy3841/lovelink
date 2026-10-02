@@ -106,7 +106,7 @@ onMounted(() => {
     })
   }
 
-  playTitle(0)
+  setTimeout(() => playTitle(0), 2000)
 
   // 诗句按配置频率逐个出现
   if (cfg.appearInterval > 0 && wordList.length) {
@@ -132,14 +132,17 @@ onBeforeUnmount(() => {
     <div class="textone">
       <h1
         v-if="currentItem"
+        class="defaultText"
         :class="currentItem.topClass"
-        :style="{ fontSize: cfg.titleFontSize }"
+        :style="{ fontSize: currentItem.fontSize || cfg.titleFontSize }"
       >{{ typedTop }}<span v-if="titlePlaying && activeLine === 'top'" class="type-cursor"></span></h1>
     </div>
     <div class="text">
       <h1
         v-if="currentItem && currentItem.bottom && (typedBottom || activeLine === 'bottom')"
-        :style="{ fontSize: cfg.titleFontSize }"
+        class="defaultText"
+        :class="currentItem.bottomClass || currentItem.topClass"
+        :style="{ fontSize: currentItem.fontSize || cfg.titleFontSize }"
       >{{ typedBottom }}<span v-if="titlePlaying && activeLine === 'bottom'" class="type-cursor"></span></h1>
     </div>
 
