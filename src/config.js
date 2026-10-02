@@ -44,8 +44,9 @@ export const titleConfig = {
     { top: '所以就算如此', fontSize: titleFontSize },
     { top: '少年与爱永不老去', bottom: '即使披荆斩棘，丢失怒马鲜衣', fontSize: titleFontSize, holdTime: 6000 },
     { top: '囿于市井，面向星海', bottom: '不看楼笼灯火，看满天星光', fontSize: titleFontSize, holdTime: 6000 },
-    { top: '如果说以后有一艘，船上只能坐两个人', bottom: '你愿意跟我一起去流浪吗？', fontSize: titleFontSize,holdTime: 10000 },
+    { top: '如果说以后有一艘，船上只能坐两个人', bottom: '你愿意跟我一起去流浪吗？', fontSize: titleFontSize,holdTime: 8000 },
     { top: '今夜的星光将伴随着我们驶向远方'},
+    { top: 'Look at the stars', bottom: 'Look how they shine for you' },
     { top: '今晚，整片星空将为我们而闪烁', topClass: 'final-text' }
   ],
   typeSpeed: 150, // 打字速度：每个字符出现的间隔（ms）
