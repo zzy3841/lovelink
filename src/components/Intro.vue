@@ -31,13 +31,7 @@ const later = (fn, ms) => {
   pending.add(id)
 }
 
-/** 网页全屏 */
-const requestFullscreen = () => {
-  if (!document.fullscreenElement) {
-    document.body.requestFullscreen().catch(() => {})
-  }
-}
-
+/** 逐字打出 text，进度经 onUpdate 回调，完成调用 onDone */
 const typeText = (text, onUpdate, onDone) => {
   if (!text) {
     onDone()
@@ -108,7 +102,6 @@ const onHeartClick = () => {
 const startTransition = () => {
   phase.value = 'transition'
   emit('present') // 通知父组件挂载星空页
-  requestFullscreen()
   later(() => {
     heartFly.value = true
   }, 1150)

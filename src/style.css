@@ -42,7 +42,15 @@ h1 {
   width: 100vw;
   height: 100vh;
   position: fixed;
-  z-index: -1;
+  /* 不用负值：部分移动端 WebView（微信 X5 等）不绘制负 z-index 的视频层 */
+  z-index: 0;
+}
+
+/* 文案层级高于视频（防同层播放器遮挡） */
+.textone,
+.text,
+.textContainer {
+  z-index: 1;
 }
 
 .videofilm video {

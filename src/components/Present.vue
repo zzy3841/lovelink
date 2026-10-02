@@ -98,12 +98,17 @@ let appearTimer = null
 onMounted(() => {
   const video = videoRef.value
   if (video) {
+    // 尝试带声音播放：此前用户已点击过信封/爱心，具备手势授权
+    video.muted = false
     video.volume = 0.5
-    // 用户已点击过按钮，带声音自动播放一般没问题；失败则降级为静音播放
-    video.play().catch(() => {
-      video.muted = true
-      video.play()
-    })
+    const p = video.play()
+    if (p && p.catch) {
+      p.catch(() => {
+        // 微信/部分移动端内核仅允许静音自动播放，降级为静音
+        video.muted = true
+        video.play().catch(() => {})
+      })
+    }
   }
 
   setTimeout(() => playTitle(0), 2000)
@@ -126,7 +131,26 @@ onBeforeUnmount(() => {
 <template>
   <div class="sky">
     <div class="videofilm">
-      <video ref="videoRef" :src="videoSrc" loop playsinline></video>
+      <!--
+        移动端/微信兼容属性：
+        - x5-video-player-type="h5"：微信安卓 X5 同层播放器，video 才能作为页面背景参与 z-index 层叠
+        - playsinline / webkit-playsinline：iOS 微信内联播放，不强制全屏
+        - muted + autoplay：移动端只允许静音自动播放（onMounted 里会尝试取消静音）
+        - poster：视频加载期间的海报兜底
+      -->
+      <video
+        ref="videoRef"
+        :src="videoSrc"
+        autoplay
+        muted
+        loop
+        playsinline
+        webkit-playsinline
+        x5-video-player-type="h5"
+        x5-video-player-fullscreen="true"
+        preload="auto"
+        poster="/skystar2.jpg"
+      ></video>
     </div>
 
     <div class="textone">
