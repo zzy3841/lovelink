@@ -8,9 +8,13 @@
     "build": "vite build",
     "build:git": "vite build --base /lovelink --outDir build",
     "preview": "vite preview",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "apk": "node scripts/build-apk.js"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
     "gh-pages": "^6.3.0",
     "vue": "^3.5.13"
   },

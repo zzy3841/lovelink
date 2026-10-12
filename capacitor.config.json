@@ -1,0 +1,8 @@
+{
+  "appId": "com.lovelink.app",
+  "appName": "lovelink",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

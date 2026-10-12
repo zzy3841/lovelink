@@ -12,6 +12,9 @@ defineProps({
 
 const videoRef = ref(null)
 
+// 海报图在 public/ 下，用动态绑定避免 Vite 构建期按组件相对路径解析（打包后走相对路径，兼容 file:// 协议）
+const posterSrc = './skystar2.jpg'
+
 // 移动端与桌面端使用各自的词库和参数配置
 const mobile = isMobile()
 const cfg = mobile ? presentConfig.mobile : presentConfig.desktop
@@ -149,7 +152,7 @@ onBeforeUnmount(() => {
         x5-video-player-type="h5"
         x5-video-player-fullscreen="true"
         preload="auto"
-        poster="/skystar2.jpg"
+        :poster="posterSrc"
       ></video>
     </div>
 
